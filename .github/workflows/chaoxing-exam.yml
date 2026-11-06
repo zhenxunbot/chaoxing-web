@@ -1,0 +1,41 @@
+name: Chaoxing Exam Auto
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 每天 UTC 2:00（北京时间 10:00），按需修改
+  workflow_dispatch:        # 允许手动触发，首次务必用它来测试
+
+jobs:
+  run-chaoxing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'   
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create config.ini
+        run: |
+          cat <<EOF > config.ini
+          [common]
+          username = ${{ secrets.CHAOXING_USERNAME }}
+          password = ${{ secrets.CHAOXING_PASSWORD }}
+          course_list = 221002941,221002943,221002948,221002947,241346016,215470760,214668286  
+          speed = 1
+          jobs = 2
+
+          [tiku]
+          provider = TikuYanxi
+          tokens = ${{ secrets.YANXI_TOKEN }}      
+          submit = true                          
+          cover_rate = 0.95                       
+          delay = 1.0
+          EOF
+
+      - name: Run Chaoxing
+        run: python3 main.py -c config.ini
